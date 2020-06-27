@@ -1,0 +1,8 @@
+{
+    int i;
+    int num = 100;
+    while(true) {
+        i = i + 1;
+        if(i >= num) break;
+    }
+}
