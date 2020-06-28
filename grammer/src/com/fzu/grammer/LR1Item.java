@@ -10,12 +10,24 @@ import java.util.Objects;
  */
 public class LR1Item {
 
-    private HashSet<String> lookahead; // 向前看符号
-    private String leftSide; // 右部和左部
+    // 向前看符号
+    private HashSet<String> lookahead;
+    // 右部和左部
+    private String leftSide;
     private String[] rightSide;
-    private int dotPointer; // .的位置
+    // .的位置
+    // 如果产生式右部有两个字符,点的取值有3中
+    // A->.ab A->a.b A->ab.
+    private int dotPointer;
 
-    public LR1Item(String leftSide, String[] rightSide, int dotPointer, HashSet<String> lookahead){
+    /**
+     * 用四个参数构造一个LR1项目集
+     * @param leftSide
+     * @param rightSide
+     * @param dotPointer
+     * @param lookahead
+     */
+    public LR1Item(String leftSide, String[] rightSide, int dotPointer, HashSet<String> lookahead) {
         this.leftSide = leftSide;
         this.rightSide = rightSide;
         this.dotPointer = dotPointer;
@@ -76,10 +88,11 @@ public class LR1Item {
     }
 
     // 比较LR(0)项目集是否相等
+    // 就是不包括向前看符号
     public boolean equalLR0(LR1Item item){
         return leftSide.equals(item.getLeftSide()) && Arrays.equals(rightSide,item.getRightSide()) && dotPointer == item.getDotPointer();
     }
-
+    
     @Override
     public int hashCode() {
         int hash = 7;

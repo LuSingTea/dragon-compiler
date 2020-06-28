@@ -45,6 +45,4 @@ public class Type extends Keyword {
 		else return Type.Char;
 				
 	}
-
-
 }

@@ -7,7 +7,7 @@ import java.io.IOException;
 
 public class LexerTest {
     public static void main(String[] args) throws IOException {
-        Lexer lexer = new Lexer("test3.txt");
+        Lexer lexer = new Lexer("test1.txt");
         // 需要注意测试文件的格式
         for (;;) {
             Token token = lexer.scan();

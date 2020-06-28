@@ -8,11 +8,13 @@ import java.util.*;
 public class Grammar {
 
     private ArrayList<Rule> rules; // 文法规则
-    private HashSet<String> terminals; //终结符
-    private HashSet<String> variables;
     private String startVariable; // 文法开始符号
-    private HashMap<String, HashSet<String>> firstSets; // 所有的首符集
-    private HashMap<String, HashSet<String>> followSets; // 所有的follow
+
+    private HashSet<String> terminals; //终结符
+    private HashSet<String> variables; // 非终结符
+
+    private HashMap<String, HashSet<String>> firstSets; // 所有的first集
+    private HashMap<String, HashSet<String>> followSets; // 所有的follow集
 
     public Grammar(String s) {
 
@@ -22,7 +24,7 @@ public class Grammar {
 
         int line = 0;
         for(String st : s.split("\n")) {
-//            System.out.println(st);
+
             String[] sides = st.split("->");
             String leftSide = sides[0].trim();
             // 左边必定是非终结符
@@ -35,29 +37,32 @@ public class Grammar {
                 }
             }
 
-            // 扩展文法
+            // 手动扩展文法
             if (line == 0) {
-//                startVariable = leftSide;
+                // startVariable = leftSide;
                 startVariable = "S'";
                 // 不太确定需不要这个
                 variables.add("S'");
-                rules.add(new Rule("S'", new String[]{"program"}));
+                rules.add(new Rule("S'", new String[]{leftSide}));
             }
             rules.add(new Rule(leftSide, rulesRightSide));
             line++;
-
         }
-        // 打印所有语法
-        System.out.println("Rules: ");
-        for (int i = 0;i < rules.size();i++) {
-            System.out.println(i + " : " + rules.get(i));
-        }
-
-
+        outputGrammer();
         computeFirstSets();
         outputFirstsets();
         computeFollowSet();
         outputFollowsets();
+        outputTerminals();
+        outputVariables();
+    }
+
+    // 打印所有文法
+    public void outputGrammer() {
+        System.out.println("Rules: ");
+        for (int i = 0;i < rules.size();i++) {
+            System.out.println(i + " : " + rules.get(i));
+        }
     }
     // 判断是否是终结符
     public boolean isTerminal(String word) {
@@ -67,18 +72,22 @@ public class Grammar {
             word.equals("unary") || word.equals("factor")) {
             return false;
         }
+        // if (word.equals("S'") || word.equals("S") || word.equals("B")) {
+        //     return false;
+        // }
         return true;
     }
     /**
      * 输出全部的first集合
      */
     public void outputFirstsets() {
-        Set<String> strings = firstSets.keySet();
-        for (String string : strings) {
-            System.out.print("first集合为:" + string + ":");
-            HashSet<String> strings1 = firstSets.get(string);
-            System.out.println(strings1);
+        Set<String> lefts = firstSets.keySet();
+        System.out.println("first集合为:");
+        for (String left : lefts) {
+            HashSet<String> right = firstSets.get(left);
+            System.out.printf("%-10s : %s\n",left ,right);
         }
+        System.out.println();
     }
 
     /**
@@ -86,11 +95,12 @@ public class Grammar {
      */
     public void outputFollowsets() {
         Set<String> stringSet = followSets.keySet();
+        System.out.println("follow集合为:");
         for (String string : stringSet) {
-            System.out.println("follow集合为:" + string + ":");
             HashSet<String> strings1 = followSets.get(string);
-            System.out.println(strings1);
+            System.out.printf("%-10s : %s\n",string ,strings1);
         }
+        System.out.println();
     }
     public ArrayList<Rule> getRules() {
         return rules;
@@ -225,7 +235,7 @@ public class Grammar {
         return first;
     }
 
-    // 根据非终结符找到对应的规则
+    // 根据左部找到对应的文法规则
     public HashSet<Rule> getRuledByLeftVariable(String variable) {
         HashSet<Rule> variableRules = new HashSet<>();
         for (Rule rule : rules) {
@@ -238,6 +248,7 @@ public class Grammar {
 
     // 输出终结符集合
     public void outputTerminals() {
+        System.out.println("终结符为: ");
         for (String terminal : terminals) {
             System.out.print(terminal + " ");
         }
@@ -246,6 +257,7 @@ public class Grammar {
 
     // 输出非终结符
     public void outputVariables() {
+        System.out.println("非终结符为: ");
         for (String variabe : variables) {
             System.out.print(variabe + " ");
         }
@@ -303,10 +315,10 @@ public class Grammar {
 
     @Override
     public String toString() {
-        String str = "";
+        StringBuilder str = new StringBuilder();
         for(Rule rule: rules){
-            str += rule + "\n";
+            str.append(rule).append("\n");
         }
-        return str;
+        return str.toString();
     }
 }

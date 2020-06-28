@@ -2,10 +2,7 @@ package lexer;
 
 import lexer.num.Num;
 import lexer.num.Real;
-import lexer.operator.Assign;
-import lexer.operator.BitOp;
-import lexer.operator.LogicOp;
-import lexer.operator.RelationOp;
+import lexer.operator.*;
 import lexer.word.Delimiter;
 import lexer.word.Id;
 import lexer.word.Keyword;
@@ -137,6 +134,14 @@ public class Lexer {
                 return Delimiter.rightSquare;
             case ';':
                 return Delimiter.semicolon;
+            case '+':
+                return ArithOp.plus;
+            case '-':
+                return ArithOp.minus;
+            case '*':
+                return ArithOp.multiply;
+            case '/':
+                return ArithOp.divide;
         }
         if (Character.isDigit(peek)) {
             int v = 0;

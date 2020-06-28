@@ -5,6 +5,10 @@ import java.util.Objects;
 
 /**
  * 代表一行文法规则
+ * 例如
+ * A-> aa bb
+ * 会被封装为A
+ * ["aa","bb"]
  */
 public class Rule {
 

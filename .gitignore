@@ -27,3 +27,4 @@ hs_err_pid*
 /target
 /grammer/grammer.iml
 /lexer/lexer.iml
+/semantic/semantic.iml

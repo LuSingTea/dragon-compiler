@@ -1,54 +1,16 @@
-package com.fzu.grammer;
+package com.fzu.test;
+
+import com.fzu.grammer.Grammar;
+import com.fzu.grammer.LR1Parser;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class Test {
     public static void main(String[] args) {
-        /*
-        program→block
-        block→{ decls stmts }
-        decls→decls decl
-        decls->epsilon
-        decl→type id ;
-        type→type [ num ]
-        type->basic
-        stmts→stmts stmt
-        stmts->epsilon
-        stmt→loc = bool ;
-        stmt->if ( bool ) stmt
-        stmt->if ( bool ) stmt else stmt
-        stmt->while ( bool ) stmt
-        stmt->do stmt while ( bool ) ;
-        stmt->break ;
-        stmt->block
-        loc→loc [ num ]
-        loc->id
-        bool→bool || join
-        bool->join
-        join→join && equality
-        join->equality
-        equality→equality == rel
-        equality->equality != rel
-        equality->rel
-        rel→expr < expr
-        rel->expr <= expr
-        rel->expr >= expr
-        rel->expr > expr
-        rel->expr
-        expr→expr + term
-        expr->expr - term
-        expr->term
-        term→term * unary
-        term->term / unary
-        term->unary
-        unary→! unary
-        unary->- unary
-        unary->factor
-        factor→( bool )
-        factor->loc
-        factor->num
-        factor->real
-        factor->true
-        factor->false
-        */
+
         String s =
                 "program->block\n" +
                 "block->{ decls stmts }\n" +
@@ -95,10 +57,15 @@ public class Test {
                 "factor->real\n" +
                 "factor->true\n" +
                 "factor->false";
+
         Grammar grammar = new Grammar(s);
         LR1Parser lr1Parser = new LR1Parser(grammar);
-
         boolean b = lr1Parser.parseCLR1();
-
+        // System.out.println(lr1Parser.actionTableStr());
+        ArrayList<String> input = new ArrayList<>();
+        input.add("{");
+        input.add("}");
+        boolean accept = lr1Parser.accept2(input);
+        System.out.println(accept);
     }
 }

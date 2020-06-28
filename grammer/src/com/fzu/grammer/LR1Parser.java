@@ -1,5 +1,7 @@
 package com.fzu.grammer;
 
+import com.sun.org.apache.bcel.internal.generic.ACONST_NULL;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -15,9 +17,9 @@ public class LR1Parser extends LRParser {
 
     // 创建LR(1)项目集规范族
     protected void createStatesForCLR1() {
-        // 用户保存项目集规范族
+        // 用于保存项目集规范族
         canonicalCollection = new ArrayList<>();
-        // 存放LR1项目
+        // 存放一个LR1状态集的LR1项目
         HashSet<LR1Item> start = new HashSet<>();
 
         // 得到第一条语法规则
@@ -25,19 +27,23 @@ public class LR1Parser extends LRParser {
 
         // S'的向前看符号
         HashSet<String> startLockahead = new HashSet<>();
-        // 文法开始放入 $ 符号
+        // 对于S' -> program向前看放入 $符号
         startLockahead.add("$");
 
         // 对于每一个状态集初始化第一个项目集
         start.add(new LR1Item(startRule.getLeftSide(),startRule.getRightSide(),0,startLockahead));
 
+        // 之后用初始化的项目集计算闭包,同时计算向前看符号
         LR1State startState = new LR1State(grammar, start);
+
         // 此时第一个状态集已经计算完毕
         canonicalCollection.add(startState);
 
-        // 遍历所有的状态集
+        // 遍历所有的状态集,构造项目集规范族
         for (int i = 0; i < canonicalCollection.size(); i++) {
-
+            // 0 = {LR1Item@513} "S' -> .program , [$]"
+            // 1 = {LR1Item@550} "program -> .block , [$]"
+            // 2 = {LR1Item@983} "block -> .{ decls stmts } , [$]"
             HashSet<String> stringWithDot = new HashSet<>();
             for (LR1Item item : canonicalCollection.get(i).getItems()) {
                 if (item.getCurrent() != null) {
@@ -45,6 +51,7 @@ public class LR1Parser extends LRParser {
                 }
             }
             for (String str : stringWithDot) {
+                // 构造下一个状态集
                 HashSet<LR1Item> nextStateItems = new HashSet<>();
                 for (LR1Item item : canonicalCollection.get(i).getItems()) {
 
@@ -53,11 +60,15 @@ public class LR1Parser extends LRParser {
                         nextStateItems.add(temp);
                     }
                 }
+
+                // 用一个状态集的第一行初始化一个项目集合
                 LR1State nextState = new LR1State(grammar, nextStateItems);
+
+                // 判断刚刚创建的项目集在不在原来的项目集中
                 boolean isExist = false;
                 for (int j = 0; j < canonicalCollection.size(); j++) {
-                    if (canonicalCollection.get(j).getItems().containsAll(nextState.getItems())
-                            && nextState.getItems().containsAll(canonicalCollection.get(j).getItems())) {
+                    if (canonicalCollection.get(j).getItems().containsAll(nextState.getItems()) &&
+                        nextState.getItems().containsAll(canonicalCollection.get(j).getItems())) {
                         isExist = true;
                         canonicalCollection.get(i).getTransition().put(str, canonicalCollection.get(j));
                     }
@@ -75,9 +86,10 @@ public class LR1Parser extends LRParser {
     public boolean parseCLR1(){
         // 创建LR(1)项目集规范组
         createStatesForCLR1();
-        System.out.println(canonicalCollectionStr());
+        // System.out.println(canonicalCollectionStr());
         // 创建goto表
         createGoToTable();
+        System.out.println(goToTableStr());
         // 创建分析表
         return createActionTable();
     }
@@ -92,55 +104,8 @@ public class LR1Parser extends LRParser {
         return str;
     }
 
-    // 解析LRLR(1)
-//    public boolean parseLALR1(){
-//        createStatesForLALR1();
-//        createGoToTable();
-//        return createActionTable();
-//    }
-
-//    public void createStatesForLALR1(){
-//        createStatesForCLR1();
-//        ArrayList<LR1State> temp = new ArrayList<>();
-//        for (int i = 0; i < canonicalCollection.size(); i++) {
-//            HashSet<String> lookahead = new HashSet<>();
-//            HashSet<LR0Item> itemsi = new HashSet<>();
-//            for(LR1Item item:canonicalCollection.get(i).getItems()){
-//                itemsi.add(new LR0Item(item.getLeftSide(),item.getRightSide(),item.getDotPointer()));
-//            }
-//            for (int j = i+1; j < canonicalCollection.size(); j++) {
-//                HashSet<LR0Item> itemsj = new HashSet<>();
-//                for(LR1Item item:canonicalCollection.get(j).getItems()){
-//                    itemsj.add(new LR0Item(item.getLeftSide(),item.getRightSide(),item.getDotPointer()));
-//                }
-//                if(itemsi.containsAll(itemsj) && itemsj.containsAll(itemsi)){
-//                    for(LR1Item itemi : canonicalCollection.get(i).getItems()){
-//                        for(LR1Item itemj : canonicalCollection.get(j).getItems()){
-//                            if(itemi.equalLR0(itemj)){
-//                                itemi.getLookahead().addAll(itemj.getLookahead());
-//                                break;
-//                            }
-//                        }
-//                    }
-//                    for (int k = 0; k < canonicalCollection.size(); k++) {
-//                        for(String s : canonicalCollection.get(k).getTransition().keySet()){
-//                            if(canonicalCollection.get(k).getTransition().get(s).getItems().containsAll(canonicalCollection.get(j).getItems()) &&
-//                                    canonicalCollection.get(j).getItems().containsAll(canonicalCollection.get(k).getTransition().get(s).getItems())){
-//                                canonicalCollection.get(k).getTransition().put(s,canonicalCollection.get(i));
-//                            }
-//                        }
-//                    }
-//                    canonicalCollection.remove(j);
-//                    j--;
-//
-//                }
-//            }
-//            temp.add(canonicalCollection.get(i));
-//        }
-//        canonicalCollection = temp;
-//    }
     // 构建goto表
-    protected void createGoToTable() {
+    public void createGoToTable() {
         goToTable = new HashMap[canonicalCollection.size()];
         // 每个状态对应一行
         for (int i = 0; i < goToTable.length; i++) {
@@ -155,7 +120,7 @@ public class LR1Parser extends LRParser {
         }
     }
 
-    // 寻找状态集合
+    // 根据状态集招待对应的状态
     private int findStateIndex(LR1State state) {
         for (int i = 0; i < canonicalCollection.size(); i++) {
             if (canonicalCollection.get(i).equals(state)) {
@@ -172,7 +137,12 @@ public class LR1Parser extends LRParser {
             actionTable[i] = new HashMap<>();
         }
         for (int i = 0; i < canonicalCollection.size(); i++) {
+            // 得到该状态集可以跳转的所有的状态集
+            // 键为读入某个token之后会跳转到的状态集,读入
+            //　例如读入A之后会跳转到状态,B之后会跳转到一个新的状态集
             for (String s : canonicalCollection.get(i).getTransition().keySet()) {
+                // 如果要读入的字符是一个终结符那么就放在动作表中一个
+                // 移进项目
                 if (grammar.getTerminals().contains(s)) {
                     actionTable[i].put(s, new Action(ActionType.SHIFT, findStateIndex(canonicalCollection.get(i).getTransition().get(s))));
                 }
@@ -180,21 +150,49 @@ public class LR1Parser extends LRParser {
         }
         for (int i = 0; i < canonicalCollection.size(); i++) {
             for (LR1Item item : canonicalCollection.get(i).getItems()) {
+                // 如果点已经到了最后一个字符之后了
+                // A->aaaaB.
                 if (item.getDotPointer() == item.getRightSide().length) {
+                    // 如果是接受项目
                     if (item.getLeftSide().equals("S'")) {
+                        // 在$那一列放上接受动作
                         actionTable[i].put("$", new Action(ActionType.ACCEPT, 0));
-                    } else {
+                    }
+                    else {
+                        //
                         Rule rule = new Rule(item.getLeftSide(), item.getRightSide().clone());
+                        // 找到文法的编号
                         int index = grammar.findRuleIndex(rule);
+
                         Action action = new Action(ActionType.REDUCE, index);
+
+                        // 找到向前看操作符,在对应的位置填上Reduce state
                         for (String str : item.getLookahead()) {
-                            if (actionTable[i].get(str) != null) {
-                                System.out.println(actionTable[i]);
-                                System.out.println("it has a REDUCE-" + actionTable[i].get(str).getType() + " confilct in state " + i);
-                                return false;
-                            } else {
-                                actionTable[i].put(str, action);
-                            }
+                            // 如果该格子中已经有了规约或者移进项目那么就会有
+                            // 规约规约冲突或者是移进规约冲突 直接报错
+                           if (actionTable[i].get(str) != null) {
+                               System.out.println(actionTable[i]);
+                               System.out.println("it has a REDUCE-" + actionTable[i].get(str).getType() + " confilct in state " + i);
+                               return false;
+                           } else {
+                               actionTable[i].put(str, action);
+                           }
+                            // 如果是移进项目直接替换
+                            // 如果是规约不做替换
+                            // Action originAction = actionTable[i].get(str);
+                            // if (originAction != null) {
+                            //     if (originAction.getType()==ActionType.SHIFT) {
+                            //         actionTable[i].put(str, action);
+                            //     }
+                            //     else if (originAction.getType() == ActionType.REDUCE) {
+                            //         continue;
+                            //     }
+                            // }
+                            // else {
+                            //     actionTable[i].put(str, action);
+                            // }
+                            // 直接替换
+                            // actionTable[i].put(str, action);
                         }
                     }
                 }

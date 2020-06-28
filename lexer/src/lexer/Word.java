@@ -23,6 +23,6 @@ public class Word extends Token {
 		minus = new Word("minus", Tag.MINUS),
 		True = new Word("true", Tag.TRUE),
 		False = new Word("false", Tag.FALSE),
-		temp = new Word("t", Tag.TEMP);
+		temp = new Word("t", Tag.TEMP); // 这个好像没用
 	
 }
